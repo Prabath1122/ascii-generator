@@ -1,19 +1,151 @@
-# React + Vite
+from pathlib import Path
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+readme = r"""# Particle Image Generator
 
-Currently, two official plugins are available:
+Turn an ordinary image into an interactive particle artwork. Upload an image, customize its appearance and movement, then export the result in several formats.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- **Image upload:** Choose an image file or drag and drop it onto the preview area.
+- **Interactive particles:** Move your pointer over the image to push dots away; they naturally move back toward their original positions.
+- **Theme options:** Switch between dark and light themes.
+- **Color options:** Use a single selected color or preserve colors sampled from the image.
+- **Background removal:** Automatically attempt to remove a plain, opaque background.
+- **Motion controls:** Adjust dot spacing, dot size, hover radius, and push force.
+- **Export formats:**
+  - **HTML** — standalone interactive page that responds to mouse and touch.
+  - **SVG** — scalable vector artwork with interactive movement.
+  - **PNG** — still image of the particle artwork.
+  - **GIF** — looping animation.
+- **Transparent background:** Available for HTML, SVG, and PNG exports.
+- **Responsive interface:** The controls adapt to smaller screens.
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## How It Works
 
-Note: This will impact Vite dev & build performances.
-You can also try [the experimental native React Compiler support in plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md#rust-react-compiler) by using `compiler: true` in the plugin options instead of using the Babel plugin.
+1. Upload an image.
+2. The app samples pixels from the image at regular intervals and creates a particle for each eligible sample.
+3. Each particle stores its original position, current position, velocity, color, and opacity.
+4. When the pointer moves nearby, particles receive a force that pushes them away.
+5. A spring force pulls displaced particles toward their original positions, while friction slows their movement.
+6. The canvas redraws the particles continuously to display the animation.
+7. Export the result as HTML, SVG, PNG, or GIF.
 
-## Expanding the ESLint configuration
+## Controls
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+| Control | Description |
+| --- | --- |
+| **Theme** | Switch between dark and light appearance. |
+| **Dot color** | Choose a single color or use colors from the original image. |
+| **Color** | Select the particle color when single-color mode is enabled. |
+| **Remove plain background** | Attempts to detect and skip a plain background based on the image corners. |
+| **Dot gap** | Controls the distance between sampled pixels. Smaller gaps create more dots and more detail. |
+| **Dot size** | Changes the size of each displayed dot. |
+| **Hover radius** | Sets how far from the pointer the push effect reaches. |
+| **Push force** | Controls the strength of the pointer's push effect. |
+| **Transparent background** | Enables transparent output for HTML, SVG, and PNG exports. |
+
+## Getting Started
+
+### Requirements
+
+- Node.js and npm
+- A modern browser with HTML Canvas support
+
+### Install and run
+
+If this project was created with Vite, use the following steps from the project directory:
+
+```bash
+npm install
+npm run dev
+```
+
+Open the local URL printed by Vite in your terminal.
+
+### Build for production
+
+```bash
+npm run build
+```
+
+To preview the production build locally:
+
+```bash
+npm run preview
+```
+
+> These commands assume the project contains the standard Vite scripts. Check `package.json` if your scripts differ.
+
+## Project Structure
+
+The main React component contains the particle engine, image processing, export functions, interface controls, and styles.
+
+| Function / section | Responsibility |
+| --- | --- |
+| `initialTheme()` | Reads the saved theme preference, falling back to dark mode. |
+| `hexToRgb()` / `toHex()` | Convert between hexadecimal and RGB colors. |
+| `detectBackground()` | Estimates whether the image has a plain, opaque background by comparing its corner colors. |
+| `buildParticles()` | Samples the image and creates particle objects and canvas dimensions. |
+| `step()` | Updates particle movement using pointer force, spring force, and friction. |
+| `draw()` | Draws particles onto a canvas. |
+| `download()` | Triggers a browser download for generated file data. |
+| `buildHtml()` | Creates a standalone interactive HTML export. |
+| `buildSvg()` | Creates an interactive SVG export. |
+| `renderGif()` | Simulates motion, renders frames, and encodes a GIF using `gifenc`. |
+| `Range` | Reusable range-slider control. |
+| `Segmented` | Reusable segmented-button control. |
+| `App()` | Manages application state, image loading, animation, settings, and exports. |
+| `STYLES` | Contains the application CSS. |
+
+## Main Technologies
+
+- **React** — builds the interface and manages UI state.
+- **HTML Canvas** — reads image pixels and draws the animated particles.
+- **JavaScript** — implements image processing, particle physics, and file exports.
+- **`gifenc`** — encodes GIF frames.
+- **CSS** — styles the application and makes the layout responsive.
+- **Vite** — development server and production build tool, if this is the Vite project setup.
+
+## Export Notes
+
+- HTML and SVG exports preserve pointer-driven interaction.
+- PNG is a still image, so it cannot react to pointer movement.
+- GIF is a looping animation generated by moving a virtual cursor across the artwork.
+- Transparent backgrounds are supported for HTML, SVG, and PNG according to the app's controls. The GIF exporter uses the selected theme background in the supplied code.
+- The exported HTML and SVG contain their own animation logic, so they can run separately from the React app.
+
+## Image and Performance Tips
+
+- Images with clear shapes and good contrast are often easier to recognize as particle art.
+- A smaller dot gap creates more detail but increases the number of particles and the amount of work required to animate or export them.
+- If GIF export fails, try increasing the dot gap to reduce the number of particles.
+- Plain-background removal is an estimate based on the image's corner pixels; it may not remove complex backgrounds perfectly.
+- A transparent PNG works well when you want the subject without a solid background.
+
+## Troubleshooting
+
+### The image does not appear
+- Confirm that the file is a supported image type such as PNG, JPG, WebP, or SVG.
+- Try another PNG or JPG if the file cannot be decoded.
+- Check the browser console for errors.
+
+### The animation is slow
+- Increase **Dot gap** to reduce the number of particles.
+- Use a smaller source image.
+- Reduce the GIF output workload by using a larger dot gap.
+
+### GIF export fails
+- Increase **Dot gap** and try again.
+- Make sure the browser has enough memory available.
+
+### The background is not removed cleanly
+- The automatic removal only detects a plain background by comparing the four corner pixels.
+- Try an image with a more uniform background or use a source image with transparency.
+
+## License
+
+No license was specified in the provided code. Add a license file and update this section if you intend to distribute the project publicly.
+"""
+path = Path("/mnt/data/README.md")
+path.write_text(readme, encoding="utf-8")
+print(f"Created: {path}")
