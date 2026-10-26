@@ -1,6 +1,4 @@
-from pathlib import Path
-
-readme = r"""# Particle Image Generator
+# Particle Image Generator
 
 Turn an ordinary image into an interactive particle artwork. Upload an image, customize its appearance and movement, then export the result in several formats.
 
@@ -145,7 +143,3 @@ The main React component contains the particle engine, image processing, export 
 ## License
 
 No license was specified in the provided code. Add a license file and update this section if you intend to distribute the project publicly.
-"""
-path = Path("/mnt/data/README.md")
-path.write_text(readme, encoding="utf-8")
-print(f"Created: {path}")
